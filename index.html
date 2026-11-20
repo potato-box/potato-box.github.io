@@ -1,1 +1,528 @@
-ttttt
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Інженерні калькулятори — Майстерня</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-2: #eef2f6;
+      --text: #161b22;
+      --muted: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+      --accent-soft: rgba(9, 105, 218, 0.1);
+      --radius: 12px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #21262d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --border: #30363d;
+      --accent: #2f81f7;
+      --accent-soft: rgba(47, 129, 247, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* 1. Шапка */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.35rem;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .theme-btn {
+      flex-shrink: 0;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent);
+    }
+
+    /* 2. Рядки вибору напрямків (багаторядкове групування) */
+    .categories-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+    }
+
+    .categories-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .cat-tab {
+      flex: 1 1 calc(33.333% - 6px);
+      min-width: 105px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .cat-tab:hover {
+      border-color: var(--accent);
+    }
+
+    .cat-tab[aria-expanded="true"] {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* 3. Список калькуляторів обраного напрямку */
+    main {
+      flex: 1;
+      padding: 20px 0 32px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .section-hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .calc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .calc-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.15s, transform 0.1s;
+    }
+
+    .calc-card:hover {
+      border-color: var(--accent);
+    }
+
+    .calc-card:active {
+      transform: scale(0.995);
+    }
+
+    .calc-info {
+      min-width: 0;
+    }
+
+    .calc-name {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+
+    .calc-desc {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .calc-arrow {
+      flex-shrink: 0;
+      color: var(--accent);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    /* 4. Підвал */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 20px 0;
+      font-size: 0.9rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      margin-bottom: 10px;
+    }
+
+    .footer-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-top">
+        <div>
+          <h1>Інженерні калькулятори</h1>
+          <p class="subtitle">
+            Практичні розрахунки для майстерні та роботи. Працюють у браузері, окремі інструменти можна встановити офлайн на смартфон.
+          </p>
+        </div>
+        <button type="button" class="theme-btn" id="themeToggle" aria-label="Перемкнути тему">
+          Тема
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="categories-bar" aria-label="Напрямки калькуляторів">
+    <div class="container">
+      <div class="categories-grid" id="categoriesBar"></div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <div class="section-head">
+        <h2 class="section-title" id="activeCategoryTitle">Оберіть напрямок</h2>
+        <span class="section-hint" id="activeCategoryCount"></span>
+      </div>
+      <div class="calc-list" id="calcList"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="/blog/">Блог</a>
+        <a href="/feedback/">Зворотний зв'язок та підтримка</a>
+        <a href="/license/">Ліцензія</a>
+      </div>
+      <p class="footer-note">
+        Усі розрахунки мають довідковий характер — перевіряйте критичні параметри перед монтажем чи запуском.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Редагуйте назви напрямків, посилання та список калькуляторів прямо тут:
+    const CATEGORIES = [
+      {
+        id: "electrical",
+        title: "Електротехніка",
+        items: [
+          {
+            name: "Переріз кабелю та падіння напруги",
+            desc: "Розрахунок перерізу жилки за струмом/потужністю, довжиною та матеріалом",
+            url: "./electrical/cable-voltage-drop/index.html"
+          },
+          {
+            name: "Закон Ома та потужність",
+            desc: "Швидкий перерахунок напруги, струму, опору та активної потужності",
+            url: "./electrical/ohm-law/index.html"
+          },
+          {
+            name: "Дільник напруги",
+            desc: "Підбір резисторів для отримання потрібної вихідної напруги",
+            url: "./electrical/voltage-divider/index.html"
+          }
+        ]
+      },
+      {
+        id: "mechanics",
+        title: "Механіка",
+        items: [
+          {
+            name: "Передавальне число та оберти",
+            desc: "Для зубчастих коліс і ремінних шківів з урахуванням вхідних обертів",
+            url: "./mechanics/gear-ratio/index.html"
+          },
+          {
+            name: "Момент затягування болтів",
+            desc: "Орієнтовний момент за діаметром різьби та класом міцності",
+            url: "./mechanics/bolt-torque/index.html"
+          },
+          {
+            name: "Крутний момент і потужність",
+            desc: "Зв'язок між моментом (Н·м), частотою обертання та потужністю (кВт)",
+            url: "./mechanics/torque-power/index.html"
+          }
+        ]
+      },
+      {
+        id: "chemistry",
+        title: "Хімія",
+        items: [
+          {
+            name: "Розведення розчинів",
+            desc: "Розрахунок об'єму концентрату та води для заданої концентрації",
+            url: "./chemistry/solution-dilution/index.html"
+          },
+          {
+            name: "Молярна маса речовини",
+            desc: "Обчислення молярної маси за хімічною формулою",
+            url: "./chemistry/molar-mass/index.html"
+          }
+        ]
+      },
+      {
+        id: "physics",
+        title: "Фізика",
+        items: [
+          {
+            name: "Рівноприскорений рух",
+            desc: "Шлях, швидкість, прискорення та час за базовими кінематичними формулами",
+            url: "./physics/kinematics/index.html"
+          },
+          {
+            name: "Тепловий баланс та нагрів",
+            desc: "Кількість теплоти для нагріву або охолодження маси речовини",
+            url: "./physics/heat-transfer/index.html"
+          }
+        ]
+      },
+      {
+        id: "math",
+        title: "Математика",
+        items: [
+          {
+            name: "Відсотки та пропорції",
+            desc: "Швидке обчислення відсотків, приросту, знижки та пропорцій",
+            url: "./math/percentages/index.html"
+          },
+          {
+            name: "Трикутник і кути",
+            desc: "Сторони, кути, площа та висота прямокутного й довільного трикутника",
+            url: "./math/triangle/index.html"
+          }
+        ]
+      },
+      {
+        id: "fasteners",
+        title: "Кріплення",
+        items: [
+          {
+            name: "Допуски та посадки (ISO)",
+            desc: "Перевірка зазорів і натягів для валів та отворів",
+            url: "./fasteners/fits-tolerances/index.html"
+          },
+          {
+            name: "Крок і діаметр різьби",
+            desc: "Довідкові параметри метричної різьби та мінімальний отвір під мітчик",
+            url: "./fasteners/metric-thread/index.html"
+          }
+        ]
+      },
+      {
+        id: "electronics",
+        title: "Електроніка",
+        items: [
+          {
+            name: "Калькулятор ШІМ (PWM)",
+            desc: "Частота, період і шпаруватість сигналу для приводів та контролерів",
+            url: "./electronics/pwm-duty/index.html"
+          },
+          {
+            name: "Резистор для світлодіода",
+            desc: "Підбір струмообмежувального резистора та його розсіюваної потужності",
+            url: "./electronics/led-resistor/index.html"
+          }
+        ]
+      },
+      {
+        id: "converters",
+        title: "Конвертери",
+        items: [
+          {
+            name: "Тиск та сила",
+            desc: "Переведення між Бар, Па, МПа, PSI, кгс/см² та Ньютонами",
+            url: "./converters/pressure-force/index.html"
+          },
+          {
+            name: "Довжина та маса",
+            desc: "Метричні та дюймові одиниці для креслень і деталей",
+            url: "./converters/length-mass/index.html"
+          }
+        ]
+      }
+    ];
+
+    const categoriesBar = document.getElementById("categoriesBar");
+    const calcList = document.getElementById("calcList");
+    const activeCategoryTitle = document.getElementById("activeCategoryTitle");
+    const activeCategoryCount = document.getElementById("activeCategoryCount");
+    const themeToggle = document.getElementById("themeToggle");
+
+    let activeId = CATEGORIES[0]?.id || null;
+
+    function renderTabs() {
+      categoriesBar.innerHTML = "";
+      CATEGORIES.forEach((cat) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cat-tab";
+        btn.textContent = cat.title;
+        btn.title = cat.title;
+        btn.setAttribute("aria-expanded", String(cat.id === activeId));
+        btn.addEventListener("click", () => {
+          activeId = activeId === cat.id ? null : cat.id;
+          renderTabs();
+          renderCalculators();
+        });
+        categoriesBar.appendChild(btn);
+      });
+    }
+
+    function renderCalculators() {
+      const current = CATEGORIES.find((c) => c.id === activeId);
+      calcList.innerHTML = "";
+
+      if (!current) {
+        activeCategoryTitle.textContent = "Напрямок не обрано";
+        activeCategoryCount.textContent = "";
+        calcList.innerHTML = '<div class="empty-state">Оберіть напрямок вище, щоб побачити доступні калькулятори.</div>';
+        return;
+      }
+
+      activeCategoryTitle.textContent = current.title;
+      activeCategoryCount.textContent = `${current.items.length} шт.`;
+
+      if (!current.items.length) {
+        calcList.innerHTML = '<div class="empty-state">У цьому напрямку поки немає доданих калькуляторів.</div>';
+        return;
+      }
+
+      current.items.forEach((item) => {
+        const link = document.createElement("a");
+        link.className = "calc-card";
+        link.href = item.url;
+        link.innerHTML = `
+          <div class="calc-info">
+            <div class="calc-name">${item.name}</div>
+            <div class="calc-desc">${item.desc}</div>
+          </div>
+          <span class="calc-arrow" aria-hidden="true">→</span>
+        `;
+        calcList.appendChild(link);
+      });
+    }
+
+    // Тема (світла / темна)
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("theme", "light");
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
+      }
+    });
+
+    renderTabs();
+    renderCalculators();
+  </script>
+</body>
+</html>
+
