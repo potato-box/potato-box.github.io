@@ -1,1 +1,1023 @@
-111
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0969da" />
+  <title>Інженерний калькулятор — Майстерня</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-2: #eef2f6;
+      --text: #161b22;
+      --muted: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+      --accent-soft: rgba(9, 105, 218, 0.1);
+      --danger: #cf222e;
+      --radius: 12px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #21262d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --border: #30363d;
+      --accent: #2f81f7;
+      --accent-soft: rgba(47, 129, 247, 0.14);
+      --danger: #f85149;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* 1. Шапка */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.3rem;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-top {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .btn-top:hover {
+      border-color: var(--accent);
+    }
+
+    .btn-install {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    /* Верхня панель режимів і кутів */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .seg-group {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      color: var(--text);
+      border: none;
+      border-radius: 7px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .seg-btn[aria-pressed="true"] {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .status-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* Основний блок */
+    main {
+      flex: 1;
+      padding: 18px 0 32px;
+    }
+
+    .calc-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .display-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      text-align: right;
+    }
+
+    .expr-line {
+      min-height: 1.35rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .result-input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 1.85rem;
+      font-weight: 600;
+      text-align: right;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      padding: 2px 0 0;
+      outline: none;
+    }
+
+    .result-input.error {
+      color: var(--danger);
+      font-size: 1.25rem;
+    }
+
+    .sci-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .basic-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .key {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 6px;
+      font-size: 0.98rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s, transform 0.08s;
+      user-select: none;
+    }
+
+    .key:hover {
+      border-color: var(--accent);
+    }
+
+    .key:active {
+      transform: scale(0.98);
+    }
+
+    .key-fn {
+      font-size: 0.86rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .key-op {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(9, 105, 218, 0.28);
+      font-weight: 600;
+    }
+
+    .key-eq {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .key-eq:hover {
+      opacity: 0.92;
+    }
+
+    .key-clear {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    /* Історія обчислень */
+    .history-box {
+      margin-top: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .history-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .link-btn:hover {
+      text-decoration: underline;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.84rem;
+      text-align: left;
+      color: var(--text);
+    }
+
+    .history-item:hover {
+      border-color: var(--accent);
+    }
+
+    .history-expr {
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-val {
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .history-empty {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
+    /* Підвал */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 18px 0;
+      font-size: 0.9rem;
+    }
+
+    .footer-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 480px) {
+      .result-input {
+        font-size: 1.5rem;
+      }
+      .key {
+        padding: 10px 4px;
+        font-size: 0.9rem;
+      }
+      .sci-grid {
+        gap: 6px;
+      }
+      .basic-grid {
+        gap: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-top">
+        <div>
+          <a href="../../index.html" class="back-link">← Усі калькулятори</a>
+          <h1>Інженерний калькулятор</h1>
+          <p class="subtitle">Базові та інженерні обчислення з пам’яттю, історією та офлайн-режимом.</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn-top btn-install" id="installBtn" hidden>
+            Встановити
+          </button>
+          <button type="button" class="btn-top" id="themeToggle" aria-label="Перемкнути тему">
+            Тема
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="top-bar" aria-label="Режими калькулятора">
+    <div class="container">
+      <div class="bar-row">
+        <div class="seg-group" role="group" aria-label="Режим">
+          <button type="button" class="seg-btn" id="modeBasic" aria-pressed="false">Звичайний</button>
+          <button type="button" class="seg-btn" id="modeSci" aria-pressed="true">Інженерний</button>
+        </div>
+
+        <div class="seg-group" id="angleGroup" role="group" aria-label="Одиниці кутів">
+          <button type="button" class="seg-btn" id="unitDeg" aria-pressed="true">DEG</button>
+          <button type="button" class="seg-btn" id="unitRad" aria-pressed="false">RAD</button>
+        </div>
+
+        <span class="status-note" id="memStatus">Пам’ять: порожньо</span>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <section class="calc-panel" aria-label="Калькулятор">
+        <div class="display-box">
+          <div class="expr-line" id="exprLine"></div>
+          <input
+            type="text"
+            class="result-input"
+            id="displayInput"
+            value="0"
+            inputmode="decimal"
+            aria-label="Поле вводу та результату"
+          />
+        </div>
+
+        <div class="sci-grid" id="sciGrid">
+          <button type="button" class="key key-fn" data-fn="sin">sin</button>
+          <button type="button" class="key key-fn" data-fn="cos">cos</button>
+          <button type="button" class="key key-fn" data-fn="tan">tan</button>
+          <button type="button" class="key key-fn" data-fn="ln">ln</button>
+          <button type="button" class="key key-fn" data-fn="log10">log</button>
+
+          <button type="button" class="key key-fn" data-fn="asin">sin⁻¹</button>
+          <button type="button" class="key key-fn" data-fn="acos">cos⁻¹</button>
+          <button type="button" class="key key-fn" data-fn="atan">tan⁻¹</button>
+          <button type="button" class="key key-fn" data-fn="sqrt">√x</button>
+          <button type="button" class="key key-fn" data-fn="cbrt">∛x</button>
+
+          <button type="button" class="key key-fn" data-insert="(">(</button>
+          <button type="button" class="key key-fn" data-insert=")">)</button>
+          <button type="button" class="key key-fn" data-fn="sq">x²</button>
+          <button type="button" class="key key-fn" data-insert="^">xʸ</button>
+          <button type="button" class="key key-fn" data-fn="inv">1/x</button>
+
+          <button type="button" class="key key-fn" data-insert="π">π</button>
+          <button type="button" class="key key-fn" data-insert="e">e</button>
+          <button type="button" class="key key-fn" data-fn="fact">n!</button>
+          <button type="button" class="key key-fn" data-mem="mc">MC</button>
+          <button type="button" class="key key-fn" data-mem="mr">MR</button>
+
+          <button type="button" class="key key-fn" data-mem="mplus">M+</button>
+          <button type="button" class="key key-fn" data-mem="mminus">M-</button>
+          <button type="button" class="key key-fn" data-fn="abs">|x|</button>
+          <button type="button" class="key key-fn" data-fn="exp10">10ˣ</button>
+          <button type="button" class="key key-fn" data-fn="exp">eˣ</button>
+        </div>
+
+        <div class="basic-grid" id="basicGrid">
+          <button type="button" class="key key-clear" data-action="clear">AC</button>
+          <button type="button" class="key key-fn" data-action="backspace">⌫</button>
+          <button type="button" class="key key-op" data-insert="%">%</button>
+          <button type="button" class="key key-op" data-insert="/">÷</button>
+
+          <button type="button" class="key" data-insert="7">7</button>
+          <button type="button" class="key" data-insert="8">8</button>
+          <button type="button" class="key" data-insert="9">9</button>
+          <button type="button" class="key key-op" data-insert="*">×</button>
+
+          <button type="button" class="key" data-insert="4">4</button>
+          <button type="button" class="key" data-insert="5">5</button>
+          <button type="button" class="key" data-insert="6">6</button>
+          <button type="button" class="key key-op" data-insert="-">−</button>
+
+          <button type="button" class="key" data-insert="1">1</button>
+          <button type="button" class="key" data-insert="2">2</button>
+          <button type="button" class="key" data-insert="3">3</button>
+          <button type="button" class="key key-op" data-insert="+">+</button>
+
+          <button type="button" class="key key-fn" data-action="sign">±</button>
+          <button type="button" class="key" data-insert="0">0</button>
+          <button type="button" class="key" data-insert=".">.</button>
+          <button type="button" class="key key-eq" data-action="equals">=</button>
+        </div>
+      </section>
+
+      <section class="history-box" aria-label="Історія обчислень">
+        <div class="history-head">
+          <h2 class="history-title">Історія</h2>
+          <button type="button" class="link-btn" id="clearHistoryBtn">Очистити</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p class="footer-note">
+        Інструмент проєкту <strong>potato-box</strong> • Перевіряйте критичні розрахунки перед монтажем чи запуском.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // --- 1. Тема (світла / темна, спільний ключ 'theme') ---
+    const themeToggle = document.getElementById("themeToggle");
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("theme", "light");
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
+      }
+    });
+
+    // --- 2. Стан калькулятора ---
+    const displayInput = document.getElementById("displayInput");
+    const exprLine = document.getElementById("exprLine");
+    const memStatus = document.getElementById("memStatus");
+    const sciGrid = document.getElementById("sciGrid");
+    const angleGroup = document.getElementById("angleGroup");
+    const modeBasic = document.getElementById("modeBasic");
+    const modeSci = document.getElementById("modeSci");
+    const unitDeg = document.getElementById("unitDeg");
+    const unitRad = document.getElementById("unitRad");
+    const historyList = document.getElementById("historyList");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+
+    let angleMode = "DEG"; // 'DEG' | 'RAD'
+    let memoryValue = null;
+    let justEvaluated = false;
+    let history = [];
+
+    function setMode(isSci) {
+      sciGrid.hidden = !isSci;
+      angleGroup.hidden = !isSci;
+      modeSci.setAttribute("aria-pressed", String(isSci));
+      modeBasic.setAttribute("aria-pressed", String(!isSci));
+    }
+
+    function setAngleMode(mode) {
+      angleMode = mode;
+      unitDeg.setAttribute("aria-pressed", String(mode === "DEG"));
+      unitRad.setAttribute("aria-pressed", String(mode === "RAD"));
+    }
+
+    modeBasic.addEventListener("click", () => setMode(false));
+    modeSci.addEventListener("click", () => setMode(true));
+    unitDeg.addEventListener("click", () => setAngleMode("DEG"));
+    unitRad.addEventListener("click", () => setAngleMode("RAD"));
+
+    function updateMemUI() {
+      if (memoryValue === null || Number.isNaN(memoryValue)) {
+        memStatus.textContent = "Пам’ять: порожньо";
+      } else {
+        memStatus.textContent = `M = ${formatNumber(memoryValue)}`;
+      }
+    }
+
+    function formatNumber(num) {
+      if (!Number.isFinite(num)) return "Помилка";
+      const rounded = Number(num.toPrecision(12));
+      return String(rounded);
+    }
+
+    function clearError() {
+      displayInput.classList.remove("error");
+    }
+
+    function showError(msg = "Помилка") {
+      displayInput.classList.add("error");
+      displayInput.value = msg;
+      justEvaluated = true;
+    }
+
+    function factorial(n) {
+      if (!Number.isInteger(n) || n < 0 || n > 170) return NaN;
+      let res = 1;
+      for (let i = 2; i <= n; i++) res *= i;
+      return res;
+    }
+
+    function toRad(x) {
+      return angleMode === "DEG" ? (x * Math.PI) / 180 : x;
+    }
+
+    function fromRad(x) {
+      return angleMode === "DEG" ? (x * 180) / Math.PI : x;
+    }
+
+    // Безпечний парсер і обчислювач арифметичних виразів (без eval)
+    function evaluateExpression(raw) {
+      let expr = raw
+        .replace(/×/g, "*")
+        .replace(/÷/g, "/")
+        .replace(/−/g, "-")
+        .replace(/π/g, `(${Math.PI})`)
+        .replace(/\be\b/g, `(${Math.E})`)
+        .replace(/(\d+(?:\.\d+)?)%/g, "($1/100)")
+        .replace(/\^/g, "**")
+        .trim();
+
+      if (!expr) return 0;
+
+      // Дозволяємо лише цифри, крапку, оператори, дужки та пробіли
+      if (!/^[0-9+\-*/().%\s*]+$/.test(expr)) {
+        throw new Error("Некоректний вираз");
+      }
+
+      const fn = new Function(`"use strict"; return (${expr});`);
+      const val = fn();
+      if (typeof val !== "number" || !Number.isFinite(val)) {
+        throw new Error("Помилка обчислення");
+      }
+      return val;
+    }
+
+    function insertToken(token) {
+      clearError();
+      const isOperator = ["+", "-", "*", "/", "^", "%"].includes(token);
+      if (displayInput.value === "0" && !isOperator && token !== ".") {
+        displayInput.value = token;
+        justEvaluated = false;
+        return;
+      }
+      if (justEvaluated) {
+        if (isOperator) {
+          justEvaluated = false;
+        } else {
+          displayInput.value = token === "." ? "0." : token;
+          justEvaluated = false;
+          return;
+        }
+      }
+      displayInput.value += token;
+    }
+
+    function applyUnaryFn(fnName) {
+      clearError();
+      let current;
+      try {
+        current = evaluateExpression(displayInput.value);
+      } catch {
+        showError("Помилка");
+        return;
+      }
+
+      let res;
+      let label;
+      switch (fnName) {
+        case "sin":
+          label = `sin(${formatNumber(current)}${angleMode === "DEG" ? "°" : ""})`;
+          res = Math.sin(toRad(current));
+          if (Math.abs(res) < 1e-15) res = 0;
+          break;
+        case "cos":
+          label = `cos(${formatNumber(current)}${angleMode === "DEG" ? "°" : ""})`;
+          res = Math.cos(toRad(current));
+          if (Math.abs(res) < 1e-15) res = 0;
+          break;
+        case "tan":
+          label = `tan(${formatNumber(current)}${angleMode === "DEG" ? "°" : ""})`;
+          if (angleMode === "DEG" && Math.abs(current % 180) === 90) {
+            res = NaN;
+          } else {
+            res = Math.tan(toRad(current));
+            if (Math.abs(res) > 1e14) res = NaN;
+          }
+          break;
+        case "asin":
+          label = `asin(${formatNumber(current)})`;
+          res = current < -1 || current > 1 ? NaN : fromRad(Math.asin(current));
+          break;
+        case "acos":
+          label = `acos(${formatNumber(current)})`;
+          res = current < -1 || current > 1 ? NaN : fromRad(Math.acos(current));
+          break;
+        case "atan":
+          label = `atan(${formatNumber(current)})`;
+          res = fromRad(Math.atan(current));
+          break;
+        case "ln":
+          label = `ln(${formatNumber(current)})`;
+          res = current <= 0 ? NaN : Math.log(current);
+          break;
+        case "log10":
+          label = `log₁₀(${formatNumber(current)})`;
+          res = current <= 0 ? NaN : Math.log10(current);
+          break;
+        case "sqrt":
+          label = `√(${formatNumber(current)})`;
+          res = current < 0 ? NaN : Math.sqrt(current);
+          break;
+        case "cbrt":
+          label = `∛(${formatNumber(current)})`;
+          res = Math.cbrt(current);
+          break;
+        case "sq":
+          label = `(${formatNumber(current)})²`;
+          res = current * current;
+          break;
+        case "inv":
+          label = `1/(${formatNumber(current)})`;
+          res = current === 0 ? NaN : 1 / current;
+          break;
+        case "fact":
+          label = `(${formatNumber(current)})!`;
+          res = factorial(current);
+          break;
+        case "abs":
+          label = `|${formatNumber(current)}|`;
+          res = Math.abs(current);
+          break;
+        case "exp10":
+          label = `10^(${formatNumber(current)})`;
+          res = Math.pow(10, current);
+          break;
+        case "exp":
+          label = `e^(${formatNumber(current)})`;
+          res = Math.exp(current);
+          break;
+        default:
+          return;
+      }
+
+      if (!Number.isFinite(res)) {
+        showError("Невизначено");
+        return;
+      }
+
+      const formatted = formatNumber(res);
+      exprLine.textContent = `${label} =`;
+      displayInput.value = formatted;
+      justEvaluated = true;
+      addHistory(label, formatted);
+    }
+
+    function calculateEquals() {
+      clearError();
+      const raw = displayInput.value.trim();
+      if (!raw) return;
+      try {
+        const res = evaluateExpression(raw);
+        const formatted = formatNumber(res);
+        exprLine.textContent = `${raw} =`;
+        displayInput.value = formatted;
+        justEvaluated = true;
+        addHistory(raw, formatted);
+      } catch {
+        showError("Помилка");
+      }
+    }
+
+    function toggleSign() {
+      clearError();
+      const val = displayInput.value;
+      if (val === "0" || !val) return;
+      if (val.startsWith("-")) {
+        displayInput.value = val.slice(1);
+      } else {
+        displayInput.value = `-${val}`;
+      }
+    }
+
+    function handleMemory(action) {
+      clearError();
+      if (action === "mc") {
+        memoryValue = null;
+        updateMemUI();
+        return;
+      }
+      if (action === "mr") {
+        if (memoryValue !== null) {
+          displayInput.value = formatNumber(memoryValue);
+          justEvaluated = false;
+        }
+        return;
+      }
+      let current;
+      try {
+        current = evaluateExpression(displayInput.value);
+      } catch {
+        showError("Помилка");
+        return;
+      }
+      if (action === "mplus") {
+        memoryValue = (memoryValue ?? 0) + current;
+      } else if (action === "mminus") {
+        memoryValue = (memoryValue ?? 0) - current;
+      }
+      updateMemUI();
+    }
+
+    function addHistory(expr, val) {
+      history.unshift({ expr, val });
+      if (history.length > 20) history.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+      if (!history.length) {
+        historyList.innerHTML = '<p class="history-empty">Поки немає збережених розрахунків.</p>';
+        return;
+      }
+      history.forEach((item) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "history-item";
+        row.innerHTML = `
+          <span class="history-expr">${item.expr}</span>
+          <span class="history-val">= ${item.val}</span>
+        `;
+        row.addEventListener("click", () => {
+          clearError();
+          displayInput.value = item.val;
+          exprLine.textContent = item.expr;
+          justEvaluated = false;
+        });
+        historyList.appendChild(row);
+      });
+    }
+
+    clearHistoryBtn.addEventListener("click", () => {
+      history = [];
+      renderHistory();
+    });
+
+    document.querySelector(".calc-panel").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+
+      if (btn.dataset.insert !== undefined) {
+        insertToken(btn.dataset.insert);
+      } else if (btn.dataset.fn) {
+        applyUnaryFn(btn.dataset.fn);
+      } else if (btn.dataset.mem) {
+        handleMemory(btn.dataset.mem);
+      } else if (btn.dataset.action) {
+        const act = btn.dataset.action;
+        if (act === "clear") {
+          clearError();
+          displayInput.value = "0";
+          exprLine.textContent = "";
+          justEvaluated = false;
+        } else if (act === "backspace") {
+          clearError();
+          if (justEvaluated || displayInput.value.length <= 1) {
+            displayInput.value = "0";
+            justEvaluated = false;
+          } else {
+            displayInput.value = displayInput.value.slice(0, -1);
+          }
+        } else if (act === "sign") {
+          toggleSign();
+        } else if (act === "equals") {
+          calculateEquals();
+        }
+      }
+    });
+
+    displayInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        calculateEquals();
+      } else if (e.key === "Escape") {
+        clearError();
+        displayInput.value = "0";
+        exprLine.textContent = "";
+      }
+    });
+
+    renderHistory();
+    updateMemUI();
+
+    // --- 3. PWA: приховування кнопки якщо вже встановлено + маніфест і Service Worker ---
+    const installBtn = document.getElementById("installBtn");
+    let deferredPrompt = null;
+
+    function isStandaloneApp() {
+      return (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true
+      );
+    }
+
+    function syncInstallVisibility() {
+      if (isStandaloneApp()) {
+        installBtn.hidden = true;
+      }
+    }
+
+    syncInstallVisibility();
+    window.matchMedia("(display-mode: standalone)").addEventListener("change", syncInstallVisibility);
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      if (isStandaloneApp()) return;
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    });
+
+    // Динамічний Web App Manifest в одному файлі
+    (function setupPWA() {
+      const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="#0969da"/><text x="96" y="122" font-family="Arial,sans-serif" font-size="92" font-weight="700" fill="#ffffff" text-anchor="middle">π</text></svg>`;
+      const iconUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgIcon)))}`;
+
+      const manifest = {
+        name: "Інженерний калькулятор — potato-box",
+        short_name: "Калькулятор",
+        description: "Звичайний та інженерний математичний калькулятор для майстерні",
+        start_url: "./",
+        scope: "./",
+        display: "standalone",
+        background_color: "#f4f6f8",
+        theme_color: "#0969da",
+        icons: [
+          {
+            src: iconUrl,
+            sizes: "192x192 512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+      const manifestLink = document.createElement("link");
+      manifestLink.rel = "manifest";
+      manifestLink.href = URL.createObjectURL(manifestBlob);
+      document.head.appendChild(manifestLink);
+
+      if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+        const swCode = `
+          const CACHE_NAME = "potato-box-sci-calc-v1";
+          self.addEventListener("install", (event) => {
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.addAll(["./"]))
+            );
+            self.skipWaiting();
+          });
+          self.addEventListener("activate", (event) => {
+            event.waitUntil(
+              caches.keys().then((keys) =>
+                Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+              )
+            );
+            self.clients.claim();
+          });
+          self.addEventListener("fetch", (event) => {
+            if (event.request.method !== "GET") return;
+            event.respondWith(
+              caches.match(event.request).then((cached) => {
+                return cached || fetch(event.request).then((resp) => {
+                  const copy = resp.clone();
+                  caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+                  return resp;
+                }).catch(() => cached);
+              })
+            );
+          });
+        `;
+        const swBlob = new Blob([swCode], { type: "application/javascript" });
+        const swUrl = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swUrl, { scope: "./" }).catch(() => {});
+      }
+    })();
+  </script>
+</body>
+</html>
