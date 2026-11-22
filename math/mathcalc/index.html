@@ -408,7 +408,7 @@
     <div class="container">
       <div class="header-top">
         <div>
-          <a href="../../index.html" class="back-link">← Усі калькулятори</a>
+          <a href="../../index.html" class="back-link" id="backLink">← Усі калькулятори</a>
           <h1>Інженерний калькулятор</h1>
           <p class="subtitle">Базові та інженерні обчислення з пам’яттю, історією та офлайн-режимом.</p>
         </div>
@@ -913,8 +913,9 @@
     renderHistory();
     updateMemUI();
 
-    // --- 3. PWA: приховування кнопки якщо вже встановлено + маніфест і Service Worker ---
+    // --- 3. PWA: приховування кнопки та посилання повернення якщо вже встановлено + маніфест і Service Worker ---
     const installBtn = document.getElementById("installBtn");
+    const backLink = document.getElementById("backLink");
     let deferredPrompt = null;
 
     function isStandaloneApp() {
@@ -924,14 +925,18 @@
       );
     }
 
-    function syncInstallVisibility() {
-      if (isStandaloneApp()) {
+    function syncStandaloneUI() {
+      const standalone = isStandaloneApp();
+      if (standalone) {
         installBtn.hidden = true;
+      }
+      if (backLink) {
+        backLink.hidden = standalone;
       }
     }
 
-    syncInstallVisibility();
-    window.matchMedia("(display-mode: standalone)").addEventListener("change", syncInstallVisibility);
+    syncStandaloneUI();
+    window.matchMedia("(display-mode: standalone)").addEventListener("change", syncStandaloneUI);
 
     window.addEventListener("beforeinstallprompt", (e) => {
       if (isStandaloneApp()) return;
@@ -950,7 +955,7 @@
 
     window.addEventListener("appinstalled", () => {
       deferredPrompt = null;
-      installBtn.hidden = true;
+      syncStandaloneUI();
     });
 
     // Динамічний Web App Manifest в одному файлі
